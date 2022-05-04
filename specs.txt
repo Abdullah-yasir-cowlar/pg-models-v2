@@ -1,0 +1,51 @@
+ 1 - creates table with give columns schema
+ 2 - alters table if exists
+ 3 - runs validations for each column (if exist)
+ 4 - options to add foreign key / with cascade delete option
+ 5 - findAll :
+        1 - gets all rows from table
+        2 - gets all rows from table with given conditions (offset, limit, orderBy, specific columns, foreign keys data)
+ 6 - findOne :
+        1 - gets one row from table by given filters
+        2 - gets one row from table with given conditions (specific columns, foreign keys data)
+ 7 - findById :
+        1 - gets one row from table by id
+        2 - gets one row from table with given conditions (specific columns, foreign keys data)
+ 8 - create :
+        1 - creates new row in table
+ 9 - updateById :
+        1 - updates row in table by id
+10 - deleteById :
+        1 - deletes row in table by id
+11 - delete :
+        1 - deletes all rows in table
+        2 - deletes all rows in table with given conditions (filters)
+12 - countAll :
+        1 - counts all rows in table
+        2 - counts all rows in table with given conditions (filters)
+13 - findAllWhere :
+        1 - gets all rows from table with given conditions (filters,offset, limit, orderBy, specific columns, foreign keys data)
+14 - patchById :
+        1 - partially updates row in table by id
+15 - update :
+        1 - updates all rows in table with given conditions (filters)
+16 - Modal Options:
+        1 - table name
+        2 - table prefix
+        3 - timestamps
+        4 - soft deletes
+        5 - primary key name
+        6 - primary key type
+17 - Create Hooks:
+        1 - beforeCreate
+        2 - afterCreate
+        3 - beforeUpdate
+        4 - afterUpdate
+        5 - beforeDelete
+        6 - afterDelete
+18 - Columns:
+        1 - name
+        2 - sql
+        3 - validations
+        4 - formatter
+        5 - column is reffered with name (which is used in column object)

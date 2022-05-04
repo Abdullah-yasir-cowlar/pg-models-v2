@@ -1,0 +1,17 @@
+{
+    "name": "pgorm",
+    "version": "1.0.8",
+    "description": "simple models form default pg client",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "test": "npm run build && jest",
+        "coverage": "jest --coverage"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^17.0.30",
+        "jest": "^28.0.3"
+    }
+}
