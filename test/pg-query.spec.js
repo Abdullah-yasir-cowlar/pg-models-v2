@@ -18,11 +18,19 @@ describe('Query Class', () => {
 
     it('should create a update query', () => {
         const query = new Query('testTable', ['id', 'name']);
-        expect(query.update([1, 'john']).query).toBe('UPDATE testTable SET id = $1, name = $2 RETURNING *');
-        expect(query.update([1, 'john'], ['id', 'name']).query).toBe('UPDATE testTable SET id = $1, name = $2 RETURNING *');
-        expect(query.update([1], ['id', 'name']).query).toBe('UPDATE testTable SET id = $1, name = $2 RETURNING *');
-        expect(query.update([1, 'john'], ['id']).query).toBe('UPDATE testTable SET id = $1 RETURNING *');
-        expect(query.update([1, 'john'], ['id', 'name'], { sql: 'id=#{idnum}', values: [1] }).query).toBe('UPDATE testTable SET id = $1, name = $2 WHERE id=$3 RETURNING *');
+        expect(query.update([1, 'john']).query).toBe('UPDATE testTable SET id=$1,name=$2 RETURNING *');
+
+        expect(query.update([1], ['id']).query).toBe('UPDATE testTable SET id=$1 RETURNING *');
+        expect(query.update(['john'], ['name']).query).toBe('UPDATE testTable SET name=$1 RETURNING *');
+        expect(query.update(['john', 1], ['name', 'id']).query).toBe('UPDATE testTable SET name=$1,id=$2 RETURNING *');
+
+        expect(query.update([1, 'john'], ['id', 'name']).query).toBe('UPDATE testTable SET id=$1,name=$2 RETURNING *');
+
+        expect(query.update([1, 'john'], ['id', 'name'], { sql: 'id=#{idnum}', values: [1] }).query).toBe('UPDATE testTable SET id=$1,name=$2 WHERE id=$3 RETURNING *');
+
+        expect(() => query.update([1], ['id', 'name']).query).toThrow('UPDATE_VALUES_MISMATCH: The number of values and columns must be equal')
+        expect(() => query.update([1, 'john'], ['id']).query).toThrow('UPDATE_VALUES_MISMATCH: The number of values and columns must be equal')
+
     })
 
     it('should create a delete query', () => {
@@ -37,10 +45,10 @@ describe('Query Class', () => {
         expect(query.select({ limit: 5, offset: 2 }).query).toBe('SELECT id,name,age FROM testTable LIMIT 5 OFFSET 2');
         expect(query.select({ limit: 5 }).query).toBe('SELECT id,name,age FROM testTable LIMIT 5');
         expect(query.select({ offset: 5 }).query).toBe('SELECT id,name,age FROM testTable OFFSET 5');
-        expect(query.select({ limit: 5, offset: 0, columns: ['id', 'name'] }).query).toBe('SELECT id,name FROM testTable LIMIT 5 OFFSET 0');
+        expect(query.select({ limit: 5, offset: 0, columns: ['id', 'name'] }).query).toBe('SELECT id,name FROM testTable LIMIT 5');
         expect(query.select({
             columns: ['id', 'name'], where: { sql: 'id=#{idnum}', values: [1] }
-        }).query).toBe('SELECT id, name FROM testTable WHERE id=$1');
+        }).query).toBe('SELECT id,name FROM testTable WHERE id=$1');
 
     })
 
@@ -91,6 +99,6 @@ describe('Query Class', () => {
                 table: 'testTable2'
             }
         }
-        expect(query.foreignKey(foptions).query).toBe('ALTER TABLE testTable ADD CONSTRAINT test_constraint FOREIGN KEY (id) REFERENCES testTable2 (id2) ON DELETE CASCADE ON UPDATE CASCADE');
+        expect(query.foreignKey(foptions).query).toBe('ALTER TABLE testTable ADD CONSTRAINT testTable_id_fkey FOREIGN KEY (id) REFERENCES testTable2 (id2) ON DELETE CASCADE ON UPDATE CASCADE');
     })
 })

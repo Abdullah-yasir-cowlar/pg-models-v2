@@ -1,4 +1,4 @@
-class Options<T> {
+export default class Options<T> {
     #config: T
     constructor(config: T, defaults: T) {
         if (!config) {
@@ -12,5 +12,3 @@ class Options<T> {
         return this.#config
     }
 }
-
-module.exports = Options

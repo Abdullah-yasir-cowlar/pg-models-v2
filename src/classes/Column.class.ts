@@ -1,4 +1,4 @@
-class Column {
+export default class Column {
     #name!: string
     #sql!: string
     #nameInTable: string
@@ -13,7 +13,7 @@ class Column {
     ) {
         this.name = colName
         this.#sql = sql.replace('@name', colName)
-        this.#nameInTable = sql.split(' ')[0] || colName
+        this.#nameInTable = this.#sql.split(' ')[0] || colName
         this.#validations = validations
         this.#formatter = formatter
     }
@@ -49,5 +49,3 @@ class Column {
         this.#validations.forEach(validator => validator(val, this.#name, allInputs))
     }
 }
-
-module.exports = Column

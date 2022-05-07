@@ -1,4 +1,4 @@
-class Model {
+export default class Model {
     #table: Table
 
     #beforeCreateHook: hook | undefined
@@ -225,5 +225,3 @@ class Model {
     // this method is for backwards compatibility
     destroyById = this.destroyByPk
 }
-
-module.exports = Model

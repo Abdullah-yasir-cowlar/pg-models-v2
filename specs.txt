@@ -49,3 +49,9 @@
         3 - validations
         4 - formatter
         5 - column is reffered with name (which is used in column object)
+
+/* NEXT PROPOSAL */
+01 - pgm-cli 
+        - create new project
+        - create new model
+        - create new migration

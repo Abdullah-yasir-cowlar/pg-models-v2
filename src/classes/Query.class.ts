@@ -1,4 +1,4 @@
-class Query {
+export default class Query {
     static #client: pgClient
 
     #tableName: string
@@ -42,10 +42,10 @@ class Query {
         columns: Array<string> = this.#columns,
         where?: whereOptions
     ) {
-        const valuesPlaceholders = values.map((_, index) => `$${index + 1}`).join(', ')
+        const valuesPlaceholders = values.map((_, index) => `$${index + 1}`).join()
         const updatePlaceholders = values
-            .map((_, index) => `${columns[index]} = $${index + 1}`)
-            .join(', ')
+            .map((_, index) => `${columns[index]}=$${index + 1}`)
+            .join()
 
         let whereClause = ' WHERE '
 
@@ -57,14 +57,16 @@ class Query {
         }
 
         const result = query
-            .replace('#{tableName}', this.#tableName)
+            .replace(/#{tableName}/g, this.#tableName)
             .replace('#{columns}', columns.join())
             .replace('#{values}', valuesPlaceholders)
             .replace('#{updateValues}', updatePlaceholders)
             .replace('#{where}', whereClause)
-            .replace('#{idnum}', `$${values.length + 1}`)
+            .replace('#{idnum}', `$${this.#values.length}`)
+            .replace('  ', ' ')
 
         this.#query = result
+        this.#values = values
         return this
     }
 
@@ -78,26 +80,31 @@ class Query {
         const { offset, limit, columns, where } = options
         let query = `SELECT #{columns} FROM #{tableName}`
 
-        if (offset) {
+        if (offset && limit) {
+            query += ` LIMIT ${limit} OFFSET ${offset}`
+        } else if (offset) {
             query += ` OFFSET ${offset}`
         } else if (limit) {
             query += ` LIMIT ${limit}`
-        } else if (offset && limit) {
-            query += ` LIMIT ${limit} OFFSET ${offset}`
         }
 
         if (where && where.sql) {
             query += ` WHERE ${where.sql}`
-            this.#values = where.values
         }
 
-        this.prepare(query, this.#values, columns)
+        this.prepare(query, [], columns, where)
 
         return this
     }
 
     update(values: Array<any>, columns: Array<string>, where?: whereOptions) {
         const query = `UPDATE #{tableName} SET #{updateValues} #{where} RETURNING *`
+
+        if (values && columns && columns.length && values.length !== columns.length) {
+            throw new Error(
+                'UPDATE_VALUES_MISMATCH: The number of values and columns must be equal'
+            )
+        }
 
         if (where) {
             this.prepare(query, values, columns, where)
@@ -108,7 +115,7 @@ class Query {
     }
 
     delete(where: whereOptions) {
-        const query = `DELETE FROM #{tableName} RETURNING *`
+        const query = `DELETE FROM #{tableName} #{where} RETURNING *`
         this.prepare(query, [], [], where)
         return this
     }
@@ -190,5 +197,3 @@ class Query {
         return this
     }
 }
-
-module.exports = Query

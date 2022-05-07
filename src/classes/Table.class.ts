@@ -1,6 +1,10 @@
-const { isObject } = require('./../utils')
+import { isObject } from '../utils'
 
-class Table {
+import Column from './Column.class'
+import Query from './Query.class'
+import Options from './Options.class'
+
+export default class Table {
     #name: string = ''
     #columns: Array<Column> = []
     #options: Options<configObject>
@@ -274,5 +278,3 @@ class Table {
         )
     }
 }
-
-module.exports = Table
