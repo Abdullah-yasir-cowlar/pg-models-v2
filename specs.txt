@@ -44,11 +44,11 @@
         5 - beforeDelete
         6 - afterDelete
 18 - Columns:
-        1 - name
+        1 - nameInTable
         2 - sql
         3 - validations
-        4 - formatter
-        5 - column is reffered with name (which is used in column object)
+        4 - formatter (pre-insert, pre-select)
+        5 - column name (this is used to refer it in js code)
 
 /* NEXT PROPOSAL */
 01 - pgm-cli 

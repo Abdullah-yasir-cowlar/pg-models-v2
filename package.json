@@ -5,6 +5,7 @@
     "main": "dist/index.js",
     "scripts": {
         "build": "tsc -p tsconfig.json",
+        "watch": "tsc -p tsconfig.json --watch",
         "test": "npm run build && jest",
         "coverage": "jest --coverage"
     },
@@ -12,6 +13,7 @@
     "license": "ISC",
     "devDependencies": {
         "@types/node": "^17.0.30",
-        "jest": "^28.0.3"
+        "jest": "^28.0.3",
+        "pg": "^8.7.3"
     }
 }

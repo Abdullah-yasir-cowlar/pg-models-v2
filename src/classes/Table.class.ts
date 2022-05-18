@@ -16,6 +16,12 @@ export default class Table {
     }
     #crudQuery: Query
 
+    /**
+     * Creates a new `Table` instance
+     * @param tableName Name of the table to be created
+     * @param columns Columns to be added to the table
+     * @param options Configuration options for the table
+     */
     constructor(tableName: string, columns: columnsObject, options: configObject = {}) {
         this.#options = new Options<configObject>(options, {
             prefix: '',
@@ -33,45 +39,55 @@ export default class Table {
         this.#crudQuery = new Query(tableName, this.getColumnNames())
     }
 
+    /**
+     * Connects to the database
+     * @param client Client to be used for the query (to connect to the database)
+     */
     static setPgClient(client: pgClient) {
         Query.setPgClient(client)
     }
 
+    /**
+     * Gets configurable object
+     */
     get options() {
         return this.#options
     }
 
+    /**
+     * Gets the name of the table
+     */
     get name() {
         return this.#name
     }
 
+    /**
+     * Gets the columns of the table
+     */
     get columns() {
         return this.#columns
     }
 
+    /**
+     * Gets the query instance
+     */
     get query() {
         return this.#crudQuery
     }
 
+    /**
+     * Sets the name of the table
+     */
     set name(name) {
         const prefix = this.options.config.prefix
         this.#name = `${prefix}${name}`
     }
 
-    setColumns(columns: columnsObject) {
-        const { pkName = 'id', pkType = 'serial' } = this.options.config
-        const pkCol = new Column(pkName, `@name ${pkType} NOT NULL PRIMARY KEY`)
-        const columnsArr = Object.entries(columns).map(
-            ([name, conf]) => new Column(name, conf.sql, conf?.validations, conf?.formatter)
-        )
-        this.#crudQuery = new Query(this.#name, this.getColumnNames())
-        this.#columns = [pkCol, ...columnsArr]
-    }
-
-    getColumn(colName: string) {
-        return this.columns.find(col => col.name === colName)
-    }
-
+    /**
+     * Runs a query and returns the result
+     * @param query Query to be run
+     * @returns result of the query
+     */
     async run(query: Query) {
         let result: any = null
 
@@ -85,6 +101,9 @@ export default class Table {
         }
     }
 
+    /**
+     * Creates the table in the database
+     */
     async create() {
         if (this.options.config.timestamps) {
             this.addTimestamps()
@@ -97,6 +116,11 @@ export default class Table {
         await this.run(this.query.createTable(colsSchema))
     }
 
+    /**
+     * Selects data from the table
+     * @param options Set options for the query
+     * @returns selected rows
+     */
     async select(options: findOptions) {
         const selectOptions = new Options<findOptions>(options, this.#findOptions.config)
         let columns = this.columns.map(col => col.nameInTable)
@@ -116,6 +140,11 @@ export default class Table {
         return result
     }
 
+    /**
+     * Inserts a row into the table
+     * @param data Data to be inserted
+     * @returns inserted row
+     */
     async insert(data: Object) {
         const arrangedInputs = this.getInputsArrangedAsColumns(this.getValidInputs(data))
         const query = this.query.insert(arrangedInputs)
@@ -123,12 +152,23 @@ export default class Table {
         return result
     }
 
+    /**
+     * Inserts multiple rows into the table
+     * @param data Data to be inserted
+     * @returns inserted rows
+     */
     async insertMany(data: Array<Object>) {
         const promises = data.map((input: Object) => this.insert(input))
         const result = await Promise.all(promises)
         return result.map(res => res.rows)
     }
 
+    /**
+     * Updates all rows in the table, or a single row if `pkey` is provided
+     * @param data Data to be updated
+     * @param pkey primary key of the row to be updated
+     * @returns updated row
+     */
     async update(data: Object, pkey?: string) {
         const arrangedInputs = this.getInputsArrangedAsColumns(this.getValidInputs(data))
         const query = this.query.update(arrangedInputs, this.getColumnNames(), {
@@ -139,6 +179,11 @@ export default class Table {
         return result
     }
 
+    /**
+     * Deletes row(s) from the table
+     * @param pkey primary key of the row to be deleted or where options i.e {where:{sql:'',values:[]}}
+     * @returns deleted rows
+     */
     async delete(pkey: string | whereOptions) {
         let query: Query
         if (typeof pkey === 'object') {
@@ -160,26 +205,48 @@ export default class Table {
         return result
     }
 
+    /**
+     * Checks if the table exists in the database
+     * @returns true if the table exists, false otherwise
+     */
     async exists() {
         // check if table exists
         const result = await this.run(this.query.tableExists())
         return result.rows.length > 0
     }
 
+    /**
+     * Checks if the column exists in the table
+     * @param name Name of the column
+     * @param type Data type of the column
+     * @returns true if the column exists, false otherwise
+     */
     async columnExists(name: string, type: string) {
         const result = await this.run(this.query.columnExists(name, type))
         return result.rows.length > 0
     }
 
+    /**
+     * Check if the constraint exists in the table
+     * @param name Name of the table
+     * @returns true if constraint exists, false otherwise
+     */
     async contraintExists(name: string) {
         const result = await this.run(this.query.constraintExists(name))
         return result.rows.length > 0
     }
 
+    /**
+     * Drops the table from database
+     */
     async drop() {
         await this.run(this.query.dropTable())
     }
 
+    /**
+     * Alters the table in the database
+     * @returns true if table is altered, false otherwise
+     */
     async alter() {
         if (!this.options.config.alter) return
 
@@ -190,8 +257,13 @@ export default class Table {
         if (missingColumns.length === 0) return
 
         await this.run(this.query.addColumns(missingColumns.map(col => col.nameInTable)))
+        return true
     }
 
+    /**
+     * Creates a foreign key
+     * @param foreignKey Object containing foreign key configuration
+     */
     async addForeignKey(foreignKey: foreignKeyOptions) {
         const { column, references, onDelete, onUpdate } = foreignKey
         const colExists = await this.columnExists(column, 'integer')
@@ -203,6 +275,9 @@ export default class Table {
         await this.run(this.query.foreignKey(foreignKey))
     }
 
+    /**
+     * Alters table to add timestamps (created_at, updated_at) columns in it
+     */
     addTimestamps() {
         const timestamps = this.options.config.timestamps
         if (typeof timestamps === 'object') {
@@ -215,18 +290,52 @@ export default class Table {
         this.#columns.push(createdAtCol, updatedAtCol)
     }
 
+    /**
+     * Adds deleted_at column in the table
+     */
     setParanoid() {
         const timestamps = this.options.config.timestamps
+        let deletedAtCol: Column
         if (!timestamps) {
             throw new Error('NO_TIMESTAMPS: Please set timestamps before setting paranoid')
         }
-        const deletedAtCol = new Column(this.#timetamps.deletedAt, '@name timestamp')
+        if (typeof timestamps === 'object') {
+            deletedAtCol = new Column(timestamps.deletedAt, '@name timestamp')
+        } else {
+            deletedAtCol = new Column(this.#timetamps.deletedAt, '@name timestamp')
+        }
 
         this.#columns.push(deletedAtCol)
     }
 
-    /* utility methods */
+    /**
+     * Sets new columns on table instance
+     * @param columns Object containing table columns configuration
+     */
+    setColumns(columns: columnsObject) {
+        const { pkName = 'id', pkType = 'serial' } = this.options.config
+        const pkCol = new Column(pkName, `@name ${pkType} NOT NULL PRIMARY KEY`)
+        const columnsArr = Object.entries(columns).map(
+            ([name, conf]) => new Column(name, conf.sql, conf?.validations, conf?.formatter)
+        )
+        this.#crudQuery = new Query(this.#name, this.getColumnNames())
+        this.#columns = [pkCol, ...columnsArr]
+    }
 
+    /**
+     * Gets column object
+     * @param colName Column name
+     * @returns matched column
+     */
+    getColumn(colName: string) {
+        return this.columns.find(col => col.name === colName)
+    }
+
+    /**
+     * Get array of column names
+     * @param includeTimestamps true for including timestamp columns names, false otherwise
+     * @returns array of column names
+     */
     getColumnNames(includeTimestamps: boolean = false) {
         let cols = this.columns.map(col => col.nameInTable)
         let timestamps: any = this.#options.config.timestamps
@@ -247,9 +356,9 @@ export default class Table {
      * Returns a list of valid inputs
      * @param allInputs User inputs object
      * @param nulls If true, will return nulls for missing inputs
-     * @returns Object with valid inputs
+     * @returns object of valid inputs, columnName-input pairs
      */
-    getValidInputs(allInputs: any, nulls: boolean = false) {
+    getValidInputs(allInputs: inputObject, nulls: boolean = false) {
         if (!isObject(allInputs)) {
             throw new Error('INVALID_INPUT: Inputs must be an object')
         }
@@ -264,15 +373,25 @@ export default class Table {
                 {}
             )
         }
-
         return validInputs
     }
 
-    getInputsArrangedAsColumns(allInputs: any) {
-        return this.getColumnNames().map(col => allInputs[col])
+    /**
+     * Arranges keys in input object according to arrangment of columns object
+     * @param allInputs object containing user inputs
+     * @returns object of arranged inputs
+     */
+    getInputsArrangedAsColumns(allInputs: inputObject) {
+        return this.getColumnNames()
+            .filter((col: string) => allInputs[col] !== undefined)
+            .map(col => allInputs[col])
     }
 
-    runValidations(allInputs: any) {
+    /**
+     * Runs validation functions of all columns on corresponding input value
+     * @param allInputs object containing user inputs
+     */
+    runValidations(allInputs: inputObject) {
         Object.values(this.columns).forEach(col =>
             col.runValidations(allInputs[col.name], allInputs)
         )

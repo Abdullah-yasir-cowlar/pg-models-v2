@@ -1,9 +1,8 @@
-module.exports = require('./classes/Model.class')
+import Model from './classes/Model.class'
+import Options from './classes/Options.class'
+import Column from './classes/Column.class'
+import Query from './classes/Query.class'
+import Table from './classes/Table.class'
 
-exports = module.exports
-
-exports.Column = require('./classes/Column.class')
-exports.Query = require('./classes/Query.class')
-exports.Table = require('./classes/Table.class')
-
-export { default as Model } from './classes/Model.class'
+export { Options, Column, Query, Table }
+export default Model

@@ -22,13 +22,9 @@ describe('Options Class', () => {
         }
 
         expect(new Options({}, defaultOptions).config).toEqual(defaultOptions);
+        expect(new Options(undefined, defaultOptions).config).toEqual(defaultOptions);
+        // expect(new Options({}, undefined).config).toEqual({});
     })
-
-    it('should return {} if one of params are undefined', () => {
-        expect(new Options(undefined, {}).config).toEqual({});
-        expect(new Options({}, undefined).config).toEqual({});
-    })
-
 
     it('should overwrite options with default options', () => {
         let defaultOptions = {
