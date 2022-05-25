@@ -183,7 +183,7 @@ export default class Table {
 
     /**
      * Deletes row(s) from the table
-     * @param pkey primary key of the row to be deleted or where options i.e {where:{sql:'',values:[]}}
+     * @param pkey {string | whereOptions} primary key of the row to be deleted or where options
      * @returns deleted rows
      */
     async delete(pkey: string | whereOptions) {

@@ -281,7 +281,7 @@ export default class Model {
     /**
      * Updates all records matching given conditions
      * @param data Object containing data to update, column-value pairs
-     * @param where  Object containing where options {where: {sql: '', values: []}}
+     * @param where {whereOptions}  Object containing where options
      * @returns Updated row
      */
     async update(data: Object, where: whereOptions) {
@@ -313,7 +313,7 @@ export default class Model {
     /**
      * Partially updates all records matching given conditions
      * @param data Object containing data to update, column-value pairs
-     * @param where  Object containing where options {where: {sql: '', values: []}}
+     * @param where {whereOptions}  Object containing where options
      * @returns Updated row
      */
     async patch(data: Object, where: whereOptions) {
@@ -345,7 +345,7 @@ export default class Model {
 
     /**
      * Deletes all records matching given conditions
-     * @param where Object containing where options {where: {sql: '', values: []}}
+     * @param wher {whereOptions}e Object containing where options
      * @returns Deleted rows
      */
     async destroy(where: whereOptions) {
