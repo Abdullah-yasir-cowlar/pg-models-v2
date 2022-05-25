@@ -1,14 +1,52 @@
 const { Table } = require('../dist/index.js');
+const { pgClient } = require('./util');
+const pg = require('pg')
 
-describe('Table Class CRUD', () => {
+let client = new pg.Client({
+    database: 'pg-models-test',
+    password: 'admin',
+    user: 'postgres',
+    port: 5432,
+    host: 'localhost'
+})
 
+const connection = client.connect().catch(err => console.log('db connection err %s', err.message))
 
-    it('should run query', () => {
-        expect(false).toBe(true);
+describe('Table Class CRUD', async () => {
+
+    beforeEach(() => {
+
     })
 
-    it('should create new table with columns in db', () => {
-        expect(false).toBe(true);
+    it('should run query', async () => {
+        const table = new Table('test', {
+            name: {
+                sql: '@name text not null'
+            }
+        })
+
+        Table.setClient(pgClient)
+
+        const result = await table.query.insert(['john']).run()
+        expect(result.rows).toEqual(['john'])
+    })
+
+    it('should create new table with columns in db', async () => {
+        const table = new Table('test', {
+            name: {
+                sql: '@name text not null'
+            },
+            age: {
+                sql: '@age int'
+            }
+        })
+
+        Table.setClient(connection)
+
+        await table.create()
+
+        const result = await table.query.insert(['john', 24]).run()
+        expect(result.rows).toEqual(['john'])
     })
 
     it('should insert new row in db', () => {

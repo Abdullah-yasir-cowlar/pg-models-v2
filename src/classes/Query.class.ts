@@ -20,7 +20,7 @@ export default class Query {
      * Connects to the database
      * @param pgClient Client object returned by `pg.Client.connect()`
      */
-    static setPgClient(pgClient: pgClient) {
+    static setClient(pgClient: pgClient) {
         Query.#client = pgClient
     }
 
@@ -62,7 +62,7 @@ export default class Query {
      * @param query Query string
      * @param values Values to be replaced in the query
      * @param columns Columns to be selected
-     * @param where Where clause
+     * @param where {whereOptions} Where clause
      * @returns reference to the instance
      */
     prepare(
@@ -100,12 +100,96 @@ export default class Query {
     }
 
     /**
+     * Appends `returning` clause to the query
+     * @param cols string (comma seperated) or an array of column names
+     * @returns reference to the instance
+     */
+    returning(cols: string | Array<string>) {
+        let _returning = ' RETURNING '
+
+        if (cols === '*') {
+            this.#query += _returning + '*'
+        } else if (cols.includes(',') && !Array.isArray(cols)) {
+            this.#query += _returning + cols
+        } else if (Array.isArray(cols) && cols.length > 0) {
+            this.#query += _returning + cols.join(',')
+        } else {
+            throw new Error(
+                `INVALID_PARAM: cols can either be '*' or 'col1,col2' or ['col1', 'col2']`
+            )
+        }
+        return this
+    }
+
+    /**
+     * Creates a query to count values of given column in the table
+     * @param column Name of the column
+     * @returns reference to the instance
+     */
+    count(column: string | undefined, where: whereOptions | undefined) {
+        let _col = '*'
+        let _query = 'SELECT COUNT(#{column}) FROM #{tableName} #{where}'
+        if (column && column !== '*') {
+            _col = column
+        }
+
+        _query = _query.replace('#{column}', _col)
+        this.prepare(_query, [], [], where)
+        return this
+    }
+
+    /**
+     * Create a query to sum the values of given column
+     * @param column Name of the column
+     * @param where {whereOptions} An object of filters
+     * @returns reference to the instance
+     */
+    sum(column: string, where: whereOptions | undefined) {
+        let _query = 'SELECT SUM(#{column}) FROM #{tableName} #{where}'
+
+        if (!column) {
+            throw new Error('INVALID_PARAM: "column" must be a non emtpy string')
+        }
+        _query = _query.replace('#{column}', column)
+        this.prepare(_query, [], [], where)
+        return this
+    }
+
+    /**
+     * Appends `order by` clause for given columns to the query
+     * @param columns List of column names, a comma seperated string, or an array of strings
+     * @returns reference to the instance
+     */
+    orderBy(columns: string | Array<string>) {
+        let _cols = columns
+        if (Array.isArray(columns) && columns.length) {
+            _cols = columns.join(',')
+        }
+        this.#query += ` ORDER BY ${_cols}`
+        return this
+    }
+
+    /**
+     * Appends `group by` clause for given columns to the query
+     * @param columns List of column names, a comma seperated string, or an array of strings
+     * @returns reference to the instance
+     */
+    groupBy(columns: string | Array<string>) {
+        let _cols = columns
+        if (Array.isArray(columns) && columns.length) {
+            _cols = columns.join(',')
+        }
+        this.#query += ` GROUP BY ${_cols}`
+        return this
+    }
+
+    /**
      * Creates an insert query
      * @param values Values to be inserted
      * @returns reference to the instance
      */
     insert(values: Array<any>) {
-        const query = `INSERT INTO #{tableName} (#{columns}) VALUES (#{values}) RETURNING *`
+        const query = `INSERT INTO #{tableName} (#{columns}) VALUES (#{values})`
         this.prepare(query, values)
         return this
     }
@@ -144,7 +228,7 @@ export default class Query {
      * @returns reference to the instance
      */
     update(values: Array<any>, columns: Array<string>, where?: whereOptions) {
-        const query = `UPDATE #{tableName} SET #{updateValues} #{where} RETURNING *`
+        const query = `UPDATE #{tableName} SET #{updateValues} #{where}`
 
         if (values && columns && columns.length && values.length !== columns.length) {
             throw new Error(
@@ -166,7 +250,7 @@ export default class Query {
      * @returns reference to the instance
      */
     delete(where: whereOptions) {
-        const query = `DELETE FROM #{tableName} #{where} RETURNING *`
+        const query = `DELETE FROM #{tableName} #{where}`
         this.prepare(query, [], [], where)
         return this
     }

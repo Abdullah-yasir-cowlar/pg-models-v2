@@ -43,8 +43,8 @@ export default class Table {
      * Connects to the database
      * @param client Client to be used for the query (to connect to the database)
      */
-    static setPgClient(client: pgClient) {
-        Query.setPgClient(client)
+    static setClient(client: pgClient) {
+        Query.setClient(client)
     }
 
     /**
@@ -147,7 +147,7 @@ export default class Table {
      */
     async insert(data: Object) {
         const arrangedInputs = this.getInputsArrangedAsColumns(this.getValidInputs(data))
-        const query = this.query.insert(arrangedInputs)
+        const query = this.query.insert(arrangedInputs).returning('*')
         const result = await this.run(query)
         return result
     }
@@ -171,10 +171,12 @@ export default class Table {
      */
     async update(data: Object, pkey?: string) {
         const arrangedInputs = this.getInputsArrangedAsColumns(this.getValidInputs(data))
-        const query = this.query.update(arrangedInputs, this.getColumnNames(), {
-            sql: `${this.options.config.pkName}=#{idnum}`,
-            values: [pkey],
-        })
+        const query = this.query
+            .update(arrangedInputs, this.getColumnNames(), {
+                sql: `${this.options.config.pkName}=#{idnum}`,
+                values: [pkey],
+            })
+            .returning('*')
         const result = await this.run(query)
         return result
     }
@@ -201,7 +203,7 @@ export default class Table {
                 values: [pkey],
             })
         }
-        const result = await this.run(query)
+        const result = await this.run(query.returning('*'))
         return result
     }
 
@@ -360,7 +362,7 @@ export default class Table {
      */
     getValidInputs(allInputs: inputObject, nulls: boolean = false) {
         if (!isObject(allInputs)) {
-            throw new Error('INVALID_INPUT: Inputs must be an object')
+            throw new Error('INVALID_INPUT: allInputs must be an object')
         }
         const colNames = this.getColumnNames()
         const validInputs: inputObject = Object.entries(allInputs)

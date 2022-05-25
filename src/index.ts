@@ -4,5 +4,4 @@ import Column from './classes/Column.class'
 import Query from './classes/Query.class'
 import Table from './classes/Table.class'
 
-export { Options, Column, Query, Table }
-export default Model
+export { Options, Column, Query, Table, Model }

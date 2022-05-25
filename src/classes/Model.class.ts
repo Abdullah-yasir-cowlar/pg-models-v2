@@ -12,6 +12,11 @@ export default class Model {
     #beforeDestoryHook: hook | undefined
     #afterDestroyHook: hook | undefined
 
+    /**
+     * Creates `Model` instance
+     * @param tableName name of the database table
+     * @param config model configurations
+     */
     constructor(tableName: string, config: configObject) {
         this.#table = new Table(tableName, {}, config)
     }
@@ -21,7 +26,7 @@ export default class Model {
      * @param pgClient client instance returned by `pg` package
      */
     static useConnection(pgClient: pgClient) {
-        Table.setPgClient(pgClient)
+        Table.setClient(pgClient)
     }
 
     #pkeyCheck(pkey: string | number) {
