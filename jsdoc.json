@@ -1,0 +1,17 @@
+{
+    "source": {
+        "includePattern": ".+\\.ts",
+        "include": ["src"],
+        "exclude": ["node_modules"]
+    },
+    "recurseDepth": 10,
+    "opts": {
+        "destination": "./docs/",
+        "recurse": true,
+        "template": "node_modules/better-docs"
+    },
+    "tags": {
+        "allowUnknownTags": ["optional"]
+    },
+    "plugins": ["node_modules/better-docs/typescript"]
+}
